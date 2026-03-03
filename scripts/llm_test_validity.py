@@ -76,7 +76,7 @@ def test_validity(
 
 def build_chat_client(system_prompt: str, logger: Optional[Logger] = None):
     return OpenAIClient(
-        OpenAI(base_url="https://api.ai.cs.ac.cn/v1"),
+        OpenAI(),
         ChatConfig(
             system_prompt=system_prompt,
             logger=logger

@@ -58,10 +58,19 @@ class LinearAlphaPool(AlphaPoolBase, metaclass=ABCMeta):
             "weights": list(self.weights)
         }
 
-    def try_new_expr(self, expr: Expression) -> float:
-        ic_ret, ic_mut = self._calc_ics(expr, ic_mut_threshold=0.99)
+    def try_new_expr(self, expr: Expression) -> bool:
+        """Try to add a new expression to the pool"""
+        try:
+            ic_ret, ic_mut = self._calc_ics(expr, ic_mut_threshold=0.99)
+        except OutOfDataRangeError:
+            print(f"[Warning] Expression requires data outside available range, skipping")
+            return False
+        except Exception as e:
+            print(f"[Warning] Failed to evaluate expression: {type(e).__name__}: {e}")
+            return False
+
         if ic_ret is None or ic_mut is None or np.isnan(ic_ret) or np.isnan(ic_mut).any():
-            return 0.
+            return False
         if str(expr) in self._failure_cache:
             return self.best_obj
 

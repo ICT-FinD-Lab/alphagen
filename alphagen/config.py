@@ -6,6 +6,7 @@ MAX_EXPR_LENGTH = 15
 MAX_EPISODE_LENGTH = 256
 
 OPERATORS: List[Type[Operator]] = [
+    #This is 2023 Paper Operators & HARLA
     # Unary
     Abs,  # Sign,
     Log,
@@ -19,8 +20,8 @@ OPERATORS: List[Type[Operator]] = [
     # Pair rolling
     Cov, Corr
 ]
-
-DELTA_TIMES = [1, 5, 10, 20, 40]
+#DELTA_TIMES = [10, 20, 30, 40, 50] #This is 2023 Paper Operators  
+DELTA_TIMES = [1, 5, 10, 20, 40] #HARLA
 
 CONSTANTS = [-30., -10., -5., -2., -1., -0.5, -0.01, 0.01, 0.5, 1., 2., 5., 10., 30.]
 

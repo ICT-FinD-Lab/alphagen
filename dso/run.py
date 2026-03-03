@@ -23,7 +23,7 @@ def train_dso(config):
     # For some reason, for the control task, the environment needs to be instantiated
     # before creating the pool. Otherwise, gym.make() hangs during the pool initializer
     if config["task"]["task_type"] == "control" and config["training"]["n_cores_batch"] > 1:
-        import gym
+        import gymnasium as gym
         import dso.task.control # Registers custom and third-party environments
         gym.make(config["task"]["env"])
 

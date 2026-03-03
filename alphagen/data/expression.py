@@ -53,7 +53,7 @@ class Feature(Expression):
         stop = period.stop + data.max_backtrack_days + data.n_days - 1
         return data.data[start:stop, int(self._feature), :]
 
-    def __str__(self) -> str: return '$' + self._feature.name.lower()
+    def __str__(self) -> str: return '$' + self._feature.name.lower() #TODO why
 
     @property
     def is_featured(self): return True
@@ -376,11 +376,11 @@ class Sum(RollingOperator):
 
 
 class Std(RollingOperator):
-    def _apply(self, operand: Tensor) -> Tensor: return operand.std(dim=-1)
+    def _apply(self, operand: Tensor) -> Tensor: return operand.std(dim=-1, unbiased=False)
 
 
 class Var(RollingOperator):
-    def _apply(self, operand: Tensor) -> Tensor: return operand.var(dim=-1)
+    def _apply(self, operand: Tensor) -> Tensor: return operand.var(dim=-1, unbiased=False)
 
 
 class Skew(RollingOperator):

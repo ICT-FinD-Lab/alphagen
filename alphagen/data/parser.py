@@ -62,6 +62,16 @@ class ExpressionParser:
 
     def _get_next_item(self) -> _StackItem:
         top = self._pop_token()
+        
+        # Handle $-prefixed features when feature_need_dollar_sign=False
+        # This allows parsing both "open" and "$open" when dollar signs are optional
+        if not self._dollar_needed and top.startswith('$'):
+            feature_name = top[1:]  # Strip the $
+            if (feature := self._features.get(feature_name)) is not None:
+                return Feature(feature)
+            else:
+                raise ExpressionParsingError(f"Can't find the feature {feature_name}")
+        
         if top == '$':      # Feature next
             top = self._pop_token()
             if (feature := self._features.get(top)) is None:

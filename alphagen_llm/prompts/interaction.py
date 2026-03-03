@@ -1,4 +1,4 @@
-from typing import List, Optional, Callable, Sequence, Tuple
+from typing import List, Optional, Callable, Sequence, Tuple, Dict, Any
 from abc import ABCMeta, abstractmethod
 from logging import Logger
 from dataclasses import dataclass
@@ -16,6 +16,7 @@ from alphagen.models.linear_alpha_pool import LinearAlphaPool
 
 from .common import alpha_phrase, safe_parse_list
 from ..client.base import ChatClient
+from ..llm_alpha_stats_utils import record_llm_alpha
 
 
 class InterativeSession(metaclass=ABCMeta):
@@ -92,10 +93,12 @@ class DefaultInteraction(InterativeSession):
         forgetful: bool = False,
         no_actual_weights: bool = False,
         also_report_history: bool = False,
-        on_pool_update: Optional[Callable[[DefaultReport, int], None]] = None
+        on_pool_update: Optional[Callable[[DefaultReport, int], None]] = None,
+        llm_alpha_stats: Optional[Dict[str, Any]] = None
     ):
         """
         no_actual_weights: Do not output the actual weights of the alphas in the prompt, just sort them.
+        llm_alpha_stats: Optional dictionary to track valid/invalid alphas generated
         """
         super().__init__(parser, client, pool_factory, calculator_train, calculators_test)
         self._replace_k = replace_k
@@ -105,6 +108,7 @@ class DefaultInteraction(InterativeSession):
         self._also_report_history = also_report_history
         self._on_pool_update = on_pool_update or (lambda r, i: None)
         self._reports: List[DefaultReport] = []
+        self._llm_alpha_stats = llm_alpha_stats
 
     @property
     def reports(self) -> List[DefaultReport]: return self._reports
@@ -136,7 +140,7 @@ class DefaultInteraction(InterativeSession):
                          "the IC performance of the set, is listed below:\n")
         REPLACE = ("\nAccording to the result, please generate {}, not similar to the insignificant ones. "
                    "The most insignificant alphas will be replaced with the new ones to potentially boost the performance. "
-                   "Again, one on each line without numbering, and do not output anything else.")
+                   "Again, one on each line without numbering and metrics, and do not output anything else.")
         SIG_THRES = 1e-4
 
         if self._forgetful:
@@ -162,11 +166,12 @@ class DefaultInteraction(InterativeSession):
             if self._forgetful:    # If using "forgetful" strategy, just reset the client and try again
                 return self._update(iter, pool)
             retry = ("Your answer seems to be formatted incorrectly, or that all the alphas you generated are invalid. "
-                     "Please follow the instructions carefully, output an alpha per line *without numbering and anything else*! "
+                     "Please follow the instructions carefully, output an alpha per line *without numbering and metrics and anything else*! "
                      f"Try again and generate {alpha_phrase(replaced_count)} again, following the instructions.")
             exprs = self._chat_and_parse(retry)
             if len(exprs) == 0:
                 return False
+           
         pool.bulk_edit(removed_idx, exprs)
         self._reports.append(report)
         self._on_pool_update(report, iter + 1)
@@ -177,6 +182,12 @@ class DefaultInteraction(InterativeSession):
         exprs, invalid = safe_parse_list(lines.split('\n'), self._parser)
         if len(invalid) != 0:
             self._client.log_message(("script", f"Invalid expressions: {invalid}"))
+        # Track valid/invalid alphas if stats dict is provided
+        if self._llm_alpha_stats is not None:
+            for expr in exprs:
+                record_llm_alpha(self._llm_alpha_stats, 'original', valid=True, fixed=False, expr=expr)
+            for expr in invalid:
+                record_llm_alpha(self._llm_alpha_stats, 'original', valid=False, fixed=False, expr=expr)
         return exprs
 
     def _parse_and_add(self, prompt: str, pool: LinearAlphaPool) -> bool:

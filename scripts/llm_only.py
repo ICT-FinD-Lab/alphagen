@@ -24,7 +24,7 @@ from alphagen.utils.misc import pprint_arguments
 
 def build_chat(system_prompt: str, logger: Optional[Logger] = None):
     return OpenAIClient(
-        OpenAI(base_url="https://api.ai.cs.ac.cn/v1"),
+        OpenAI(),
         ChatConfig(
             system_prompt=system_prompt,
             logger=logger

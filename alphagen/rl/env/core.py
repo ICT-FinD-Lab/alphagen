@@ -66,8 +66,8 @@ class AlphaEnvCore(gym.Env):
 
     def _evaluate(self):
         expr: Expression = self._builder.get_tree()
-        if self._print_expr:
-            print(expr)
+        # if self._print_expr:
+        #     print(expr)
         try:
             ret = self.pool.try_new_expr(expr)
             self.eval_cnt += 1
