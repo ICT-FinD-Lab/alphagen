@@ -129,6 +129,19 @@ We implemented some trading strategies based on Qlib. See [backtest.py](backtest
 }
 ```
 
+```bibtex
+@article{HARLA,
+  author = {Yu, Shuo and Xue, Hongyan and Ao, Xiang and He, Qing},
+  title = {A hybrid approach to formulaic alpha discovery with large language model assistance},
+  journal = {Frontiers of Computer Science},
+  volume = {20},
+  number = {2},
+  pages = {2002316},
+  year = {2026},
+  doi = {10.1007/S11704-025-41061-5},
+}
+```
+
 ## Contributing
 
 Feel free to submit Issues or Pull requests.
